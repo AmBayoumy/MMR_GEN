@@ -2061,8 +2061,13 @@ function makeArabicParagraph(xmlDoc, text){
   // pPr children MUST follow the OOXML schema sequence: bidi, then spacing, then jc.
   const pPr = xmlDoc.createElement('w:pPr');
   pPr.appendChild(xmlDoc.createElement('w:bidi'));
-  const spacing = xmlDoc.createElement('w:spacing'); spacing.setAttribute('w:after','160'); pPr.appendChild(spacing);
-  const jc = xmlDoc.createElement('w:jc'); jc.setAttribute('w:val','right'); pPr.appendChild(jc);
+  const spacing = xmlDoc.createElement('w:spacing');
+  spacing.setAttribute('w:before','0');
+  spacing.setAttribute('w:after','0');
+  spacing.setAttribute('w:line','240');
+  spacing.setAttribute('w:lineRule','auto');
+  pPr.appendChild(spacing);
+  const jc = xmlDoc.createElement('w:jc'); jc.setAttribute('w:val','both'); pPr.appendChild(jc);
   p.appendChild(pPr);
 
   // rPr children MUST follow the sequence: rFonts, b/bCs, sz/szCs, ..., rtl.
