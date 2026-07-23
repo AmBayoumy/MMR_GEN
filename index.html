@@ -1782,14 +1782,20 @@ function buildDocx(D, images, qaName){
   }
 
   /* ---------------- Header / Footer ---------------- */
+  const headerCellBorder = {
+    top:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
+    left:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
+    right:{style:BorderStyle.NONE,size:0,color:'FFFFFF'},
+    bottom:{style:BorderStyle.SINGLE,size:4,color:BLUE}
+  };
   const header = new Header({children:[
     new Table({
       width:{size:10466, type:WidthType.DXA}, columnWidths:[5573,4893],
       rows:[new TableRow({children:[
-        new TableCell({width:{size:5573,type:WidthType.DXA}, borders:noBorder, children:[
+        new TableCell({width:{size:5573,type:WidthType.DXA}, borders:headerCellBorder, children:[
           new Paragraph({children:[run('October University for Modern Sciences & Arts - MSA', {bold:true, color:NAVY, size:SMALL})]})
         ]}),
-        new TableCell({width:{size:4893,type:WidthType.DXA}, borders:noBorder, children:[
+        new TableCell({width:{size:4893,type:WidthType.DXA}, borders:headerCellBorder, children:[
           new Paragraph({alignment:AlignmentType.RIGHT, children:[run('Quality Assurance Unit, Faculty of Engineering', {bold:true, color:NAVY, size:SMALL})]})
         ]})
       ]})]
@@ -1871,10 +1877,12 @@ $('genBtn').addEventListener('click', async ()=>{
     let mediaIdx = 0;
     const nextMedia = () => xc.images[mediaIdx] ? loadImageDims(xc.images[mediaIdx++].dataUrl) : Promise.resolve(null);
     const usedDefIdx = new Set();
+    function normTitle(s){
+      return (s||'').toLowerCase().replace(/[\u2018\u2019\u02BC\uFF07`]/g, "'");
+    }
     function takeChartDef(keywords){
-      let idx = xc.defs.findIndex((d,i)=>!usedDefIdx.has(i) && keywords.some(k=>(d.title||'').toLowerCase().includes(k)));
-      if (idx === -1) idx = xc.defs.findIndex((d,i)=>!usedDefIdx.has(i));
-      if (idx === -1) return null;
+      const idx = xc.defs.findIndex((d,i)=>!usedDefIdx.has(i) && keywords.some(k=>normTitle(d.title).includes(normTitle(k))));
+      if (idx === -1) return null; // no confident title match — safer to fall through than risk assigning the wrong chart
       usedDefIdx.add(idx);
       return xc.defs[idx];
     }
@@ -1888,7 +1896,7 @@ $('genBtn').addEventListener('click', async ()=>{
       }
     }
     if (D.finalQuestions.length){
-      const def = takeChartDef(['final']);
+      const def = takeChartDef(['final exam','final analysis']);
       images.final = def ? await renderChartFromDef('chartFinal', def, EXCEL_BLUE) : await nextMedia();
       if (!images.final){
         images.final = await renderBarChart('chartFinal', D.finalQuestions.map(q=>q.label), D.finalQuestions.map(q=>round(q.value,2)),
@@ -2087,7 +2095,7 @@ function makeArabicParagraph(xmlDoc, text){
   const spacing = xmlDoc.createElement('w:spacing');
   spacing.setAttribute('w:before','0');
   spacing.setAttribute('w:after','0');
-  spacing.setAttribute('w:line','240');
+  spacing.setAttribute('w:line','168');
   spacing.setAttribute('w:lineRule','auto');
   pPr.appendChild(spacing);
   const jc = xmlDoc.createElement('w:jc'); jc.setAttribute('w:val','both'); pPr.appendChild(jc);
@@ -2099,10 +2107,8 @@ function makeArabicParagraph(xmlDoc, text){
   const rFonts = xmlDoc.createElement('w:rFonts');
   rFonts.setAttribute('w:ascii','Arial'); rFonts.setAttribute('w:hAnsi','Arial'); rFonts.setAttribute('w:cs','Simplified Arabic');
   rPr.appendChild(rFonts);
-  rPr.appendChild(xmlDoc.createElement('w:b'));
-  rPr.appendChild(xmlDoc.createElement('w:bCs'));
   const sz = xmlDoc.createElement('w:sz'); sz.setAttribute('w:val','22'); rPr.appendChild(sz);
-  const szCs = xmlDoc.createElement('w:szCs'); szCs.setAttribute('w:val','26'); rPr.appendChild(szCs);
+  const szCs = xmlDoc.createElement('w:szCs'); szCs.setAttribute('w:val','22'); rPr.appendChild(szCs);
   rPr.appendChild(xmlDoc.createElement('w:rtl'));
   r.appendChild(rPr);
   const t = xmlDoc.createElement('w:t'); t.setAttribute('xml:space','preserve'); t.textContent = clean;
