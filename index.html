@@ -144,6 +144,21 @@
   .drop input{display:none;}
   .badge-opt{font-size:10.5px;color:var(--hint);font-weight:400;text-transform:none;letter-spacing:0;background:none;padding:0;margin-left:6px;}
 
+  .toggle-link{
+    display:inline-flex; align-items:center; gap:6px;
+    background:none; border:none; cursor:pointer;
+    color:var(--blue); font-size:12.5px; font-weight:600;
+    padding:10px 0 0; font-family:inherit;
+  }
+  .toggle-link:hover{text-decoration:underline;}
+  .collapsible{
+    display:grid; grid-template-rows:0fr; opacity:0;
+    transition:grid-template-rows .25s ease, opacity .2s ease, margin-top .25s ease;
+    margin-top:0;
+  }
+  .collapsible.open{grid-template-rows:1fr; opacity:1; margin-top:14px;}
+  .collapsible-inner{overflow:hidden; min-height:0;}
+
   .clear-btn{
     display:none; align-items:center; justify-content:center; flex:none;
     width:26px;height:26px;border-radius:50%;border:none;
@@ -305,30 +320,32 @@
       <button type="button" class="clear-btn" id="xlsmClear" title="Remove file" aria-label="Remove file">✕</button>
       <input type="file" id="xlsmInput" accept=".xlsm,.xlsx">
     </label>
-  </div>
 
-  <div class="card">
-    <h2><span class="num">2</span> Course / MMR PDF <span class="badge-opt">optional</span></h2>
-    <p class="hint">Used only as a fallback text source for any narrative fields left blank in the workbook — the workbook always takes priority.</p>
-    <label class="drop" id="dropPdf">
-      <div class="icon">📄</div>
-      <div class="meta">
-        <div class="fname" id="pdfName">Drag &amp; drop a .pdf file here, or click to browse… (optional)</div>
-        <div class="fsub" id="pdfSub">Optional fallback source</div>
+    <button type="button" class="toggle-link" id="pdfToggle">+ Add an optional PDF fallback source</button>
+    <div id="pdfSection" class="collapsible">
+      <div class="collapsible-inner">
+        <p class="hint">Used only as a fallback text source for any narrative fields left blank in the workbook — the workbook always takes priority.</p>
+        <label class="drop" id="dropPdf">
+          <div class="icon">📄</div>
+          <div class="meta">
+            <div class="fname" id="pdfName">Drag &amp; drop a .pdf file here, or click to browse… (optional)</div>
+            <div class="fsub" id="pdfSub">Optional fallback source</div>
+          </div>
+          <button type="button" class="clear-btn" id="pdfClear" title="Remove file" aria-label="Remove file">✕</button>
+          <input type="file" id="pdfInput" accept=".pdf">
+        </label>
       </div>
-      <button type="button" class="clear-btn" id="pdfClear" title="Remove file" aria-label="Remove file">✕</button>
-      <input type="file" id="pdfInput" accept=".pdf">
-    </label>
+    </div>
   </div>
 
   <div class="card">
-    <h2><span class="num">3</span> Footer signature</h2>
+    <h2><span class="num">2</span> Footer signature</h2>
     <p class="hint">Printed in the footer of every page, exactly as in the template.</p>
     <input class="qa-name" id="qaName" type="text" value="Assoc. Prof. Mohammed Ali Abdelnaby - Deputy Director of Quality Assurance Unit">
   </div>
 
   <div class="card">
-    <h2><span class="num">4</span> Generate</h2>
+    <h2><span class="num">3</span> Generate</h2>
     <div class="actions">
       <button id="genBtn"><span class="spinner"></span><span class="btn-label">Generate MMR Word Document</span></button>
       <span class="status" id="statusText"></span>
@@ -349,7 +366,7 @@
   </div>
 
   <div class="card">
-    <h2><span class="num">5</span> Bilingual (English + Arabic) version <span class="badge-opt">optional</span></h2>
+    <h2><span class="num">4</span> Bilingual (English + Arabic) version <span class="badge-opt">optional</span></h2>
     <p class="hint">Upload an MMR Word document produced by Step 4 above to generate a second copy with an Arabic translation added under every comment / feedback paragraph. This is a separate, independent step — it does not use the workbook or PDF above. Requires an internet connection at generation time (uses a translation service), and the Arabic wording should be reviewed before official submission.</p>
     <label class="drop" id="dropDocx">
       <div class="icon">🌐</div>
@@ -506,6 +523,12 @@ function wireDragDrop(dropId, handler){
 }
 wireDragDrop('dropXlsm', handleXlsmFile);
 wireDragDrop('dropPdf', handlePdfFile);
+
+/* ---------- optional PDF section: hidden until the user asks for it ---------- */
+$('pdfToggle').addEventListener('click', ()=>{
+  const open = $('pdfSection').classList.toggle('open');
+  $('pdfToggle').textContent = open ? '\u2212 Hide PDF option' : '+ Add an optional PDF fallback source';
+});
 
 // stop the browser from navigating away if a file is dropped outside a drop zone
 ['dragover','drop'].forEach(evt=>{
